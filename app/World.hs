@@ -20,43 +20,10 @@ bulletSpeed = 5
 shipInit :: Ship
 shipInit = Ship DLeft (P $ V2 (CInt 250) (CInt 480))
 
-invadersInit :: [Invader]        
-invadersInit = [(Invader (P $ V2 (CInt 100) (CInt 20))),
-             (Invader (P $ V2 140 20)),
-             (Invader (P $ V2 180 20)),
-             (Invader (P $ V2 220 20)),
-             (Invader (P $ V2 260 20)),
-             (Invader (P $ V2 300 20)),
-             (Invader (P $ V2 340 20)),
-             (Invader (P $ V2 380 20)),
-             (Invader (P $ V2 420 20)),
-             (Invader (P $ V2 100 50)),
-             (Invader (P $ V2 140 50)),
-             (Invader (P $ V2 180 50)),
-             (Invader (P $ V2 220 50)),
-             (Invader (P $ V2 260 50)),
-             (Invader (P $ V2 300 50)),
-             (Invader (P $ V2 340 50)),
-             (Invader (P $ V2 380 50)),
-             (Invader (P $ V2 420 50)),
-             (Invader (P $ V2 100 80)),
-             (Invader (P $ V2 140 80)),
-             (Invader (P $ V2 180 80)),
-             (Invader (P $ V2 220 80)),
-             (Invader (P $ V2 260 80)),
-             (Invader (P $ V2 300 80)),
-             (Invader (P $ V2 340 80)),
-             (Invader (P $ V2 380 80)),
-             (Invader (P $ V2 420 80)),
-             (Invader (P $ V2 100 110)),
-             (Invader (P $ V2 140 110)),
-             (Invader (P $ V2 180 110)),
-             (Invader (P $ V2 220 110)),
-             (Invader (P $ V2 260 110)),
-             (Invader (P $ V2 300 110)),
-             (Invader (P $ V2 340 110)),
-             (Invader (P $ V2 380 110)),
-             (Invader (P $ V2 420 110))]
+invadersInit :: [Invader]
+invadersInit = [Invader (P $ V2 (CInt x) (CInt y)) |
+             x <- [100, 140, 180, 220, 260, 300, 340, 380, 420],
+             y <- [20, 50, 80, 110]]
 
 worldInit :: World
 worldInit = World shipInit invadersInit [] []            
