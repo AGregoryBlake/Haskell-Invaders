@@ -7,12 +7,14 @@ import Linear.Affine
 import Control.Monad (unless)
 import World
 import Data.Word
+import Control.Concurrent       
 
 windowWidth = 500
 windowHeight = 500
 shipWidth = 25
 shipHeight = 15
 invaderSide = 20
+bulletSide = 4            
        
 main :: IO ()
 main = do
@@ -32,9 +34,35 @@ appLoop renderer world = do
             keysymKeycode (keyboardEventKeysym keyboardEvent) == KeycodeQ
           _ -> False
       qPressed = not (null (filter eventIsQPress events))
+  let eventIsLeftPress event =
+        case eventPayload event of
+          KeyboardEvent keyboardEvent ->
+            keyboardEventKeyMotion keyboardEvent == Pressed &&
+            keysymKeycode (keyboardEventKeysym keyboardEvent) == KeycodeLeft
+          _ -> False
+      leftPressed = not (null (filter eventIsLeftPress events))
+  let eventIsRightPress event =
+        case eventPayload event of
+          KeyboardEvent keyboardEvent ->
+            keyboardEventKeyMotion keyboardEvent == Pressed &&
+            keysymKeycode (keyboardEventKeysym keyboardEvent) == KeycodeRight
+          _ -> False
+      rightPressed = not (null (filter eventIsRightPress events))
+  let eventIsSpacePress event =
+        case eventPayload event of
+          KeyboardEvent keyboardEvent ->
+            keyboardEventKeyMotion keyboardEvent == Pressed &&
+            keysymKeycode (keyboardEventKeysym keyboardEvent) == KeycodeSpace
+          _ -> False
+      spacePressed = not (null (filter eventIsSpacePress events))
+
   drawWorld renderer world
   present renderer
-  unless qPressed (appLoop renderer (worldMove world))
+  threadDelay 16500
+  unless qPressed $ appLoop renderer $ do
+         if rightPressed then worldUpdate world DRight spacePressed
+         else if leftPressed then worldUpdate world DLeft spacePressed
+         else worldUpdate world (getShipDirection world) spacePressed
 
 drawBackground :: Renderer -> IO ()
 drawBackground renderer = do
@@ -64,4 +92,4 @@ drawInvaders renderer invaders = do
 drawBullets :: Renderer -> [Bullet] -> Word8 -> IO ()
 drawBullets renderer bullets x = do
          rendererDrawColor renderer $= V4 x 0 0 255
-         mapM_ (\(Bullet _ pos) -> fillRect renderer (Just (Rectangle pos (V2 invaderSide invaderSide)))) bullets
+         mapM_ (\(Bullet _ pos) -> fillRect renderer (Just (Rectangle pos (V2 bulletSide bulletSide)))) bullets
