@@ -41,8 +41,9 @@ bulletsMove bullets = map (\(Bullet dir (P (V2 x y))) -> if dir == DUp then Bull
 
 shipMove :: Ship -> Ship
 shipMove (Ship dir (P (V2 x y)))
-         | dir == DLeft = Ship dir (P $ V2 (x - shipSpeed) y)
-         | otherwise = Ship dir (P $ V2 (x + shipSpeed) y)
+         | dir == DLeft = Ship dir (P $ V2 (squash (x - shipSpeed)) y)
+         | otherwise = Ship dir (P $ V2 (squash (x + shipSpeed)) y)
+         where squash n = (n + 500) `mod` 500
 
 -- invadersFire :: [Invader] -> [Bullet] -> [Bullet]
 -- removeHitsAndOutOfBounds
