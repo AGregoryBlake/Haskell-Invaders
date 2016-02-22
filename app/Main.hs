@@ -27,34 +27,17 @@ main = do
 appLoop :: Renderer -> World -> IO ()
 appLoop renderer world = do
   events <- pollEvents
-  let eventIsQPress event =
+  let eventIsKeyPress key event =
         case eventPayload event of
           KeyboardEvent keyboardEvent ->
             keyboardEventKeyMotion keyboardEvent == Pressed &&
-            keysymKeycode (keyboardEventKeysym keyboardEvent) == KeycodeQ
+            keysymKeycode (keyboardEventKeysym keyboardEvent) == key
           _ -> False
-      qPressed = not (null (filter eventIsQPress events))
-  let eventIsLeftPress event =
-        case eventPayload event of
-          KeyboardEvent keyboardEvent ->
-            keyboardEventKeyMotion keyboardEvent == Pressed &&
-            keysymKeycode (keyboardEventKeysym keyboardEvent) == KeycodeLeft
-          _ -> False
-      leftPressed = not (null (filter eventIsLeftPress events))
-  let eventIsRightPress event =
-        case eventPayload event of
-          KeyboardEvent keyboardEvent ->
-            keyboardEventKeyMotion keyboardEvent == Pressed &&
-            keysymKeycode (keyboardEventKeysym keyboardEvent) == KeycodeRight
-          _ -> False
-      rightPressed = not (null (filter eventIsRightPress events))
-  let eventIsSpacePress event =
-        case eventPayload event of
-          KeyboardEvent keyboardEvent ->
-            keyboardEventKeyMotion keyboardEvent == Pressed &&
-            keysymKeycode (keyboardEventKeysym keyboardEvent) == KeycodeSpace
-          _ -> False
-      spacePressed = not (null (filter eventIsSpacePress events))
+      keyPressed key = not (null (filter (eventIsKeyPress key) events))
+      qPressed = keyPressed KeycodeQ
+      leftPressed = keyPressed KeycodeLeft
+      rightPressed = keyPressed KeycodeRight
+      spacePressed = keyPressed KeycodeSpace
 
   drawWorld renderer world
   present renderer
