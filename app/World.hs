@@ -69,3 +69,9 @@ getBulletLocations (World _ _ _ invaderBullets) = foldl getBulletLocation invade
 
 getBulletLocation :: [Bullet] -> [Location]
 getBulletLocation (Bullet _ l) = l
+
+gameOver :: World -> Bool
+gameOver world = shipHit world || invadersGone world
+
+invadersGone :: World -> Bool
+invadersGone (World _ invaders _ _) = (length invaders) == 0
