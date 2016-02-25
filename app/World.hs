@@ -30,8 +30,8 @@ worldInit = World shipInit invadersInit [] []
 
 worldUpdate :: World -> Direction -> Bool -> World
 worldUpdate world dir firing
-            | firing = worldMove $ shipFire $ changeDirection world dir
-            | otherwise = worldMove $ changeDirection world dir
+            | firing = worldMove $ shipFire $ removeHitsAndOutOfBounds $ changeDirection world dir
+            | otherwise = worldMove $ removeHitsAndOutOfBounds $ changeDirection world dir
           
 worldMove :: World -> World
 worldMove (World ship invaders shipBullets invaderBullets) = World (shipMove ship) invaders (bulletsMove shipBullets) (bulletsMove shipBullets)
