@@ -46,7 +46,20 @@ shipMove (Ship dir (P (V2 x y)))
          where squash n = (n + 500) `mod` 500
 
 -- invadersFire :: [Invader] -> [Bullet] -> [Bullet]
--- removeHitsAndOutOfBounds
+
+removeHitsAndOutOfBounds :: World -> World
+removeHitsAndOutOfBounds (World ship invaders shipBullets invadersBullets) = 
+        World ship (removeCollidedInvaders invaders) (removeCollidedBullets . removeOutOfBounds shipBullets) (removeOutOfBounds invaderBullets)
+
+removeCollidedInvaders :: [Invader] -> [Bullet] -> [Invader]
+removeCollidedInvaders invaders bullets = filter (\(Invader l) -> l `elem` (map getBulletLocation bullets) invaders
+
+removeCollidedBullets :: [Bullet] -> [Invader] -> [Bullet]
+removeCollidedBullets bullets invaders = filter (\bullet -> (getBulletLocation bullet) `elem` (map getInvaderLocation invaders)) bullets
+
+removeOutOfBounds :: [Bullet] -> [Bullet]
+removeOutOfBounds bullets = filter (\bullet -> (getBulletLocation bullet) < 0 || (getBulletLocation bullet) > 500) bullets
+
 shipHit :: World -> Bool
 shipHit (World ship _ _ invaderBullets) = (getShipLocation ship) `elem` (getBulletLocations invaderBullets)
 
@@ -67,8 +80,11 @@ getShipLocation (World (Ship _ p) _ _ _) = p
 getInvaderBulletLocations :: World -> [Location]
 getBulletLocations (World _ _ _ invaderBullets) = foldl getBulletLocation invaderBullets
 
-getBulletLocation :: [Bullet] -> [Location]
+getBulletLocation :: Bullet -> Location
 getBulletLocation (Bullet _ l) = l
+
+getInvaderLocation :: Invader -> Location
+getInvaderLocation (Invader l) = l
 
 gameOver :: World -> Bool
 gameOver world = shipHit world || invadersGone world
