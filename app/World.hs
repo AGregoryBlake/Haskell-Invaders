@@ -47,7 +47,8 @@ shipMove (Ship dir (P (V2 x y)))
 
 -- invadersFire :: [Invader] -> [Bullet] -> [Bullet]
 -- removeHitsAndOutOfBounds
--- shipHit
+shipHit :: World -> Bool
+shipHit (World ship _ _ invaderBullets) = (getShipLocation ship) `elem` (getBulletLocations invaderBullets)
 
 shipFire :: World -> World
 shipFire world@(World ship invaders shipBullets invaderBullets)
@@ -62,3 +63,9 @@ getShipDirection (World (Ship dir _) _ _ _) = dir
 
 getShipLocation :: World -> Location
 getShipLocation (World (Ship _ p) _ _ _) = p                
+
+getInvaderBulletLocations :: World -> [Location]
+getBulletLocations (World _ _ _ invaderBullets) = foldl getBulletLocation invaderBullets
+
+getBulletLocation :: [Bullet] -> [Location]
+getBulletLocation (Bullet _ l) = l
