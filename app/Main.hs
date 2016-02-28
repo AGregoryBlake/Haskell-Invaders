@@ -45,7 +45,7 @@ appLoop renderer gen world = do
   drawWorld renderer world
   present renderer
   threadDelay 16500
-  unless qPressed $ appLoop renderer g $ do
+  unless (qPressed || World.gameOver world) $ appLoop renderer g $ do
          if rightPressed then worldUpdate a world DRight spacePressed
          else if leftPressed then worldUpdate a world DLeft spacePressed
          else worldUpdate a world (getShipDirection world) spacePressed
