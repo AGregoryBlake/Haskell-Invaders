@@ -28,13 +28,13 @@ invadersInit = [Invader (P $ V2 (CInt x) (CInt y)) |
 worldInit :: World
 worldInit = World shipInit invadersInit [] []            
 
-worldUpdate :: World -> Direction -> Bool -> World
-worldUpdate world dir firing
-            | firing = worldMove $ shipFire $ removeHitsAndOutOfBounds $ changeDirection world dir
-            | otherwise = worldMove $ removeHitsAndOutOfBounds $ changeDirection world dir
+worldUpdate :: Int -> World -> Direction -> Bool -> World
+worldUpdate a world dir firing
+            | firing = worldMove $ shipFire $ invadersFire a $ removeHitsAndOutOfBounds $ changeDirection world dir
+            | otherwise = worldMove $ invadersFire a $ removeHitsAndOutOfBounds $ changeDirection world dir
           
 worldMove :: World -> World
-worldMove (World ship invaders shipBullets invaderBullets) = World (shipMove ship) invaders (bulletsMove shipBullets) (bulletsMove shipBullets)
+worldMove (World ship invaders shipBullets invaderBullets) = World (shipMove ship) invaders (bulletsMove shipBullets) (bulletsMove invaderBullets)
 
 bulletsMove :: [Bullet] -> [Bullet]
 bulletsMove bullets = map (\(Bullet dir (P (V2 x y))) -> if dir == DUp then Bullet dir (P $ V2 x (y - bulletSpeed)) else Bullet dir (P $ V2 x (y + bulletSpeed))) bullets
@@ -45,28 +45,35 @@ shipMove (Ship dir (P (V2 x y)))
          | otherwise = Ship dir (P $ V2 (squash (x + shipSpeed)) y)
          where squash n = (n + 500) `mod` 500
 
--- invadersFire :: [Invader] -> [Bullet] -> [Bullet]
+invadersFire :: Int -> World -> World
+invadersFire a (World ship invaders shipBullets invaderBullets) = World ship invaders shipBullets (invaderFires (invaders !! a) invaderBullets)
 
+invaderFires :: Invader -> [Bullet] -> [Bullet]
+invaderFires invader invaderBullets
+             | length invaderBullets >= maxInvaderBullets = invaderBullets
+             | otherwise = (Bullet DDown (getInvaderLocation invader)) : invaderBullets
+             
 removeHitsAndOutOfBounds :: World -> World
-removeHitsAndOutOfBounds (World ship invaders shipBullets invadersBullets) = 
-        World ship (removeCollidedInvaders invaders) (removeCollidedBullets . removeOutOfBounds shipBullets) (removeOutOfBounds invaderBullets)
+removeHitsAndOutOfBounds (World ship invaders shipBullets invaderBullets) = 
+        World ship (removeCollidedInvaders invaders shipBullets) (removeCollidedBullets (removeOutOfBounds shipBullets) invaders) (removeOutOfBounds invaderBullets)
 
 removeCollidedInvaders :: [Invader] -> [Bullet] -> [Invader]
-removeCollidedInvaders invaders bullets = filter (\(Invader l) -> l `elem` (map getBulletLocation bullets) invaders
+removeCollidedInvaders invaders bullets = filter (\(Invader l) -> l `notElem` (map getBulletLocation bullets)) invaders
 
 removeCollidedBullets :: [Bullet] -> [Invader] -> [Bullet]
-removeCollidedBullets bullets invaders = filter (\bullet -> (getBulletLocation bullet) `elem` (map getInvaderLocation invaders)) bullets
+removeCollidedBullets bullets invaders = filter (\bullet -> (getBulletLocation bullet) `notElem` (map getInvaderLocation invaders)) bullets
 
 removeOutOfBounds :: [Bullet] -> [Bullet]
-removeOutOfBounds bullets = filter (\bullet -> (getBulletLocation bullet) < 0 || (getBulletLocation bullet) > 500) bullets
+removeOutOfBounds bullets = filter (\bullet -> (getY $ getBulletLocation bullet) > 0 && (getY $ getBulletLocation bullet) < 500) bullets
+                  where getY (P (V2 _ y)) = y
 
 shipHit :: World -> Bool
-shipHit (World ship _ _ invaderBullets) = (getShipLocation ship) `elem` (getBulletLocations invaderBullets)
+shipHit world = (getShipLocation world) `elem` (getInvaderBulletLocations world)
 
 shipFire :: World -> World
 shipFire world@(World ship invaders shipBullets invaderBullets)
-         | length shipBullets >= 3 = world
-         | otherwise = World ship invaders ((Bullet DUp (getShipLocation world)) : shipBullets) invaderBullets
+                      | length shipBullets >= maxShipBullets = world
+                      | otherwise = World ship invaders ((Bullet DUp (getShipLocation world)) : shipBullets) invaderBullets
          
 changeDirection :: World -> Direction -> World
 changeDirection (World (Ship _ (P (V2 x y))) invaders shipBullets invaderBullets) dir = World (Ship dir (P $ V2 x y)) invaders shipBullets invaderBullets
@@ -78,7 +85,7 @@ getShipLocation :: World -> Location
 getShipLocation (World (Ship _ p) _ _ _) = p                
 
 getInvaderBulletLocations :: World -> [Location]
-getBulletLocations (World _ _ _ invaderBullets) = foldl getBulletLocation invaderBullets
+getInvaderBulletLocations (World _ _ _ invaderBullets) = map getBulletLocation invaderBullets
 
 getBulletLocation :: Bullet -> Location
 getBulletLocation (Bullet _ l) = l
@@ -91,3 +98,6 @@ gameOver world = shipHit world || invadersGone world
 
 invadersGone :: World -> Bool
 invadersGone (World _ invaders _ _) = (length invaders) == 0
+
+getInvaders :: World -> [Invader]
+getInvaders (World _ invaders _ _) = invaders            

@@ -27,6 +27,8 @@ executable space-invaders-exe
                      , space-invaders
                      , sdl2
                      , linear
+                     , mtl
+                     , random
   default-language:    Haskell2010
 
 test-suite space-invaders-test

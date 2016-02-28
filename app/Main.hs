@@ -7,7 +7,8 @@ import Linear.Affine
 import Control.Monad (unless)
 import World
 import Data.Word
-import Control.Concurrent       
+import Control.Concurrent
+import System.Random
 
 windowWidth = 500
 windowHeight = 500
@@ -22,10 +23,12 @@ main = do
   window <- createWindow "My SDL Application" defaultWindow
          { windowInitialSize = V2 windowWidth windowHeight }
   renderer <- createRenderer window (-1) defaultRenderer
-  appLoop renderer World.worldInit
+  gen <- getStdGen
+  appLoop renderer gen World.worldInit
 
-appLoop :: Renderer -> World -> IO ()
-appLoop renderer world = do
+appLoop :: Renderer -> StdGen -> World -> IO ()
+appLoop renderer gen world = do
+  (a,g) <- return $ randomR (0, (length (World.getInvaders world) - 1)) gen
   events <- pollEvents
   let eventIsKeyPress key event =
         case eventPayload event of
@@ -42,10 +45,10 @@ appLoop renderer world = do
   drawWorld renderer world
   present renderer
   threadDelay 16500
-  unless qPressed $ appLoop renderer $ do
-         if rightPressed then worldUpdate world DRight spacePressed
-         else if leftPressed then worldUpdate world DLeft spacePressed
-         else worldUpdate world (getShipDirection world) spacePressed
+  unless qPressed $ appLoop renderer g $ do
+         if rightPressed then worldUpdate a world DRight spacePressed
+         else if leftPressed then worldUpdate a world DLeft spacePressed
+         else worldUpdate a world (getShipDirection world) spacePressed
 
 drawBackground :: Renderer -> IO ()
 drawBackground renderer = do
@@ -57,8 +60,8 @@ drawWorld renderer (World ship invaders shipBullets invaderBullets) = do
           drawBackground renderer 
           drawShip renderer ship
           drawInvaders renderer invaders
-          drawBullets renderer shipBullets 0
-          drawBullets renderer invaderBullets 255
+          drawBullets renderer shipBullets 255 255 255
+          drawBullets renderer invaderBullets 255 0 0
                
 drawShip :: Renderer -> Ship -> IO ()
 drawShip renderer (Ship _ x) = do
@@ -72,7 +75,7 @@ drawInvaders renderer invaders = do
          mapM_ (\(Invader pos) -> fillRect renderer (Just (Rectangle pos (V2 invaderSide invaderSide)))) invaders
          return ()
 
-drawBullets :: Renderer -> [Bullet] -> Word8 -> IO ()
-drawBullets renderer bullets x = do
-         rendererDrawColor renderer $= V4 x 0 0 255
+drawBullets :: Renderer -> [Bullet] -> Word8 -> Word8 -> Word8 -> IO ()
+drawBullets renderer bullets x y z = do
+         rendererDrawColor renderer $= V4 x y z 255
          mapM_ (\(Bullet _ pos) -> fillRect renderer (Just (Rectangle pos (V2 bulletSide bulletSide)))) bullets
